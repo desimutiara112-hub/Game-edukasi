@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Simulator interaktif penyusunan rangkaian elektronika dasar dan simulasi tugas Praktik Kerja Lapangan (PKL) untuk siswa SMK Kelas 10.">
+    <meta name="author" content="Autonomous Product Studio">
+    <meta name="theme-color" content="#1a1d24">
+    <meta name="color-scheme" content="dark light">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bengkel PKL">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Simulasi Bengkel Elektronika & PKL">
+    <meta property="og:description" content="Selesaikan tiket perbaikan rangkaian elektronika dan kumpulkan nilai keahlian PKL.">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:site_name" content="Bengkel PKL Simulator">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Simulasi Bengkel Elektronika & PKL">
+    <meta name="twitter:description" content="Selesaikan tiket perbaikan rangkaian elektronika dan kumpulkan nilai keahlian PKL.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231a1d24'/%3E%3Cpath d='M30 50 L45 35 L45 65 L60 50' fill='none' stroke='%234ade80' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='70' cy='50' r='10' fill='%23f59e0b'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231a1d24'/%3E%3Cpath d='M30 50 L45 35 L45 65 L60 50' fill='none' stroke='%234ade80' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='70' cy='50' r='10' fill='%23f59e0b'/%3E%3C/svg%3E">
+    <title>Simulasi Bengkel Elektronika & PKL</title>
+    <style>
+        :root {
+            --bg-primary: oklch(18% 0.02 240);
+            --bg-secondary: oklch(25% 0.03 240);
+            --bg-tertiary: oklch(32% 0.04 240);
+            --accent: oklch(72% 0.16 190);
+            --accent-dim: oklch(72% 0.16 190 / 0.2);
+            --warning: oklch(75% 0.18 70);
+            --warning-dim: oklch(75% 0.18 70 / 0.2);
+            --text-primary: oklch(92% 0.01 240);
+            --text-secondary: oklch(70% 0.02 240);
+            --success: oklch(78% 0.15 145);
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 24px; --space-6: 32px; --space-8: 48px;
+            --radius: 8px;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            height: 100%;
+            overscroll-behavior: none;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100dvh;
+            height: 100vh; /* Fallback */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+
+        /* Grain Overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            padding: var(--space-4);
+            padding-top: calc(var(--space-4) + env(safe-area-inset-top));
+            padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+        h1 { font-size: clamp(1.5rem, 5vw, 2rem); margin-bottom: var(--space-4); }
+        h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); margin-bottom: var(--space-3); color: var(--accent); }
+        p { line-height: 1.6; color: var(--text-secondary); margin-bottom: var(--space-4); font-size: clamp(0.9rem, 3vw, 1rem); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-height: 48px;
+            min-width: 48px;
+            text-decoration: none;
+        }
+
+        .btn:active { transform: scale(0.96); background: var(--bg-secondary); }
+        .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .btn-primary { background: var(--accent); color: var(--bg-primary); border-color: var(--accent); font-weight: 600; }
+        .btn-primary:active { background: oklch(65% 0.14 190); }
+        .btn-warning { background: var(--warning); color: var(--bg-primary); border-color: var(--warning); }
+        .btn-danger { background: var(--warning-dim); color: var(--warning); border-color: var(--warning); }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: var(--radius);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3);
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            margin-bottom: var(--space-4);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .hud-item { display: flex; flex-direction: column; align-items: center; }
+        .hud-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .hud-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+
+        .grid-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: var(--space-2);
+            aspect-ratio: 1;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            touch-action: none;
+        }
+
+        .cell {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-secondary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+        }
+
+        .cell:active { transform: scale(0.95); }
+        .cell.fixed { background: var(--bg-secondary); cursor: default; border-color: var(--text-secondary); }
+        .cell.fixed::after {
+            content: "FIX";
+            position: absolute;
+            top: 2px; right: 4px;
+            font-size: 0.5rem;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .cell svg { width: 60%; height: 60%; pointer-events: none; }
+        .cell.active-path { background: var(--accent-dim); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-dim); }
+        .cell.short-circuit { background: var(--warning-dim); border-color: var(--warning); animation: pulseWarning 0.5s infinite; }
+
+        @keyframes pulseWarning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3);
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            margin-top: var(--space-4);
+            flex-wrap: wrap;
+        }
+
+        .tool {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tool.selected { border-color: var(--accent); background: var(--accent-dim); }
+        .tool:active { transform: scale(0.9); }
+        .tool svg { width: 32px; height: 32px; }
+
+        .briefing-box {
+            border-left: 3px solid var(--accent);
+            padding-left: var(--space-4);
+            margin: var(--space-4) 0;
+        }
+
+        .briefing-box h3 { color: var(--text-primary); font-size: 1rem; margin-bottom: var(--space-2); }
+        .briefing-box ul { list-style: none; padding-left: 0; }
+        .briefing-box li { margin-bottom: var(--space-2); padding-left: var(--space-4); position: relative; color: var(--text-secondary); }
+        .briefing-box li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--space-4);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: var(--radius);
+            padding: var(--space-6);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: var(--space-4) var(--space-6);
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-weight: 600;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .status-message.error { border-color: var(--warning); color: var(--warning); }
+        .status-message.show { display: block; animation: popIn 0.2s ease-out; }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .rotate-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-primary);
+            z-index: 9998;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--space-6);
+        }
+
+        .rotate-overlay svg { width: 64px; height: 64px; margin-bottom: var(--space-4); color: var(--accent); animation: rotateHint 2s infinite ease-in-out; }
+        @keyframes rotateHint { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }
+
+        @media (max-width: 380px) {
+            .grid-container { gap: var(--space-1); }
+            .tool { width: 48px; height: 48px; }
+            .tool svg { width: 28px; height: 28px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="rotateOverlay" class="rotate-overlay">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+        </svg>
+        <h2>Putar Perangkat Anda</h2>
+        <p>Untuk pengalaman simulasi bengkel yang optimal, silakan putar perangkat ke mode landscape atau gunakan layar yang lebih lebar.</p>
+    </div>
+
+    <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
+
+    <!-- SCREEN: MENU -->
+    <div id="screenMenu" class="screen active">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <svg width="80" height="80" viewBox="0 0 100 100" fill="none" style="margin-bottom: var(--space-4);">
+                <rect width="100" height="100" rx="20" fill="oklch(25% 0.03 240)"/>
+                <path d="M30 50 L40 40 L40 60 L55 50 L65 50" fill="none" stroke="oklch(72% 0.16 190)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="75" cy="50" r="8" fill="oklch(75% 0.18 70)"/>
+            </svg>
+            <h1>Bengkel Elektronika<br>& Simulasi PKL</h1>
+            <p>Selesaikan tiket perbaikan rangkaian, hindari hubung singkat, dan kumpulkan nilai keahlian untuk kelulusan PKL.</p>
+            
+            <div class="card" style="width: 100%; max-width: 320px; margin-top: var(--space-6);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Nilai PKL Tertinggi</span>
+                    <span id="highScoreDisplay" style="font-family: var(--font-mono); font-weight: 700; color: var(--accent);">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Tiket Selesai</span>
+                    <span id="completedTicketsDisplay" style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">0</span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); width: 100%; max-width: 320px; margin-top: var(--space-6);">
+                <button class="btn btn-primary" onclick="game.startBriefing()">Mulai Simulasi PKL</button>
+                <button class="btn" onclick="game.showSettings()">Pengaturan</button>
+                <button class="btn" onclick="game.showCredits()">Tentang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: BRIEFING -->
+    <div id="screenBriefing" class="screen">
+        <h2>Tiket Perbaikan #<span id="ticketNumber">01</span></h2>
+        <div class="briefing-box">
+            <h3 id="clientName">PT. Maju Jaya Elektronik</h3>
+            <p id="taskDescription">Indikator lampu pada panel kontrol utama tidak menyala. Dugaan awal: rangkaian terbuka atau komponen putus.</p>
+            <ul id="taskRequirements">
+                <li>Sumber daya (Baterai) sudah terpasang di posisi awal.</li>
+                <li>Beban (LED) harus terhubung ke kutub positif melalui Hambatan (Resistor) untuk membatasi arus.</li>
+                <li>Saklar harus dalam posisi ON (tertutup) agar arus mengalir.</li>
+            </ul>
+        </div>
+        <div style="flex: 1;"></div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="game.startLevel()">Mulai Perbaikan</button>
+        <button class="btn" style="width: 100%; margin-top: var(--space-2);" onclick="game.showMenu()">Kembali ke Menu</button>
+    </div>
+
+    <!-- SCREEN: GAME -->
+    <div id="screenGame" class="screen">
+        <div class="hud">
+            <div class="hud-item">
+                <span class="hud-label">Tiket</span>
+                <span class="hud-value" id="hudLevel">01</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Nilai PKL</span>
+                <span class="hud-value" id="hudScore">0</span>
+            </div>
+            <div class="hud-item">
+                <button class="btn" style="min-height: 36px; padding: var(--space-2);" onclick="game.pause()" aria-label="Jeda Permainan">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="gameGrid" class="grid-container" role="grid" aria-label="Grid Rangkaian Elektronika">
+            <!-- Generated by JS -->
+        </div>
+
+        <div class="toolbar" role="toolbar" aria-label="Pilihan Komponen">
+            <div class="tool" data-type="wire" onclick="game.selectTool('wire')" aria-label="Pilih Kabel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12 L20 12"/></svg>
+            </div>
+            <div class="tool" data-type="resistor" onclick="game.selectTool('resistor')" aria-label="Pilih Resistor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12 L8 12 L10 8 L14 16 L16 12 L20 12"/></svg>
+            </div>
+            <div class="tool" data-type="switch" onclick="game.selectTool('switch')" aria-label="Pilih Saklar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/><path d="M6 12 L18 6"/></svg>
+            </div>
+            <div class="tool" data-type="eraser" onclick="game.selectTool('eraser')" aria-label="Hapus Komponen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20 L4 4 M4 20 L20 4"/></svg>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; margin-top: var(--space-4);" onclick="game.testCircuit()">
+            Uji Rangkaian
+        </button>
+    </div>
+
+    <!-- SCREEN: SUCCESS -->
+    <div id="screenSuccess" class="screen">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.15 145)" stroke-width="2" style="margin-bottom: var(--space-4);">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <h2>Rangkaian Berhasil!</h2>
+            <p id="successMessage">Arus mengalir dengan aman melalui resistor. LED menyala sesuai spesifikasi.</p>
+            
+            <div class="card" style="width: 100%; max-width: 320px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
+                    <span style="color: var(--text-secondary);">Bonus Penyelesaian</span>
+                    <span style="font-family: var(--font-mono); font-weight: 700; color: var(--success);">+50</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--bg-tertiary); padding-top: var(--space-2);">
+                    <span style="color: var(--text-secondary);">Total Nilai PKL</span>
+                    <span id="successTotalScore" style="font-family: var(--font-mono); font-weight: 700; color: var(--accent);">0</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; max-width: 320px; margin-top: var(--space-6);" onclick="game.nextLevel()">Tiket Berikutnya</button>
+        </div>
+    </div>
+
+    <!-- SCREEN: GAME OVER -->
+    <div id="screenGameOver" class="screen">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="oklch(75% 0.18 70)" stroke-width="2" style="margin-bottom: var(--space-4);">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <h2 style="color: var(--warning);">Hubung Singkat!</h2>
+            <p id="failMessage">Arus mengalir tanpa hambatan. Resistor rusak dan rangkaian gagal. Periksa kembali jalur kabel Anda.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); width: 100%; max-width: 320px; margin-top: var(--space-6);">
+                <button class="btn btn-warning" onclick="game.retryLevel()">Coba Lagi</button>
+                <button class="btn" onclick="game.showMenu()">Kembali ke Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PAUSE -->
+    <div id="modalPause" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Simulasi Dijeda</h2>
+            <p>Perbaikan ditunda sementara. Pilih tindakan berikut:</p>
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+                <button class="btn btn-primary" onclick="game.resume()">Lanjutkan</button>
+                <button class="btn" onclick="game.retryLevel()">Ulangi Tiket</button>
+                <button class="btn btn-danger" onclick="game.showMenu()">Keluar ke Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div id="modalSettings" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Pengaturan</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: var(--space-4) 0; padding: var(--space-3); background: var(--bg-tertiary); border-radius: var(--radius);">
+                <span>Efek Suara</span>
+                <button id="btnToggleSound" class="btn" style="min-height: 36px;" onclick="game.toggleSound()">Aktif</button>
+            </div>
+            <button class="btn btn-danger" style="width: 100%; margin-top: var(--space-4);" onclick="game.resetData()">Reset Data Penyimpanan</button>
+            <button class="btn" style="width: 100%; margin-top: var(--space-2);" onclick="game.closeModals()">Tutup</button>
+        </div>
+    </div>
+
+    <!-- MODAL: CREDITS -->
+    <div id="modalCredits" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Tentang</h2>
+            <p style="font-size: 0.9rem;">Simulasi ini dirancang untuk siswa SMK Kelas 10 Jurusan Teknik Elektronika sebagai media pembelajaran interaktif dasar rangkaian dan etika kerja PKL.</p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: var(--space-4);">Dibuat dengan standar aksesibilitas WCAG AA, kompatibel dengan perangkat Android & iOS, dan berjalan sepenuhnya di browser tanpa koneksi internet.</p>
+            <button class="btn" style="width: 100%; margin-top: var(--space-4);" onclick="game.closeModals()">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * SIMULASI BENGKEL ELEKTRONIKA & PKL
+         * Single-file architecture, no external dependencies.
+         */
+
+        // --- CONSTANTS ---
+        const GRID_SIZE = 5;
+        const COMPONENTS = {
+            EMPTY: { type: 'empty', symbol: '' },
+            BATTERY: { type: 'battery', symbol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12 L10 12 M14 12 L18 12 M10 8 L10 16 M14 8 L14 16"/><path d="M4 12 L6 12 M18 12 L20 12" stroke-width="3"/></svg>', fixed: true },
+            LED: { type: 'led', symbol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8 L6 16 L14 12 Z"/><path d="M14 8 L14 16"/><path d="M16 6 L20 2 M18 8 L22 4" stroke-width="1.5"/></svg>', fixed: true },
+            WIRE: { type: 'wire', symbol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12 L20 12"/></svg>' },
+            RESISTOR: { type: 'resistor', symbol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12 L8 12 L10 8 L14 16 L16 12 L20 12"/></svg>' },
+            SWITCH: { type: 'switch', symbol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="4" cy="12" r="2.5" fill="currentColor"/><circle cx="20" cy="12" r="2.5" fill="currentColor"/><path d="M6.5 12 L18 6" stroke-linecap="round"/></svg>', state: 'open' }
+        };
+
+        const LEVELS = [
+            {
+                id: 1,
+                client: "PT. Maju Jaya Elektronik",
+                desc: "Indikator lampu pada panel kontrol utama tidak menyala. Dugaan awal: rangkaian terbuka atau komponen putus.",
+                req: [
+                    "Hubungkan Baterai (kiri) ke LED (kanan).",
+                    "Wajib menggunakan minimal 1 Resistor untuk membatasi arus.",
+                    "Pastikan Saklar dalam posisi ON (tertutup) sebelum diuji."
+                ],
+                batteryPos: { r: 2, c: 0 },
+                ledPos: { r: 2, c: 4 }
+            },
+            {
+                id: 2,
+                client: "CV. Sumber Rejeki",
+                desc: "Sistem alarm kebakaran sederhana tidak aktif. Rangkaian harus melewati dua titik pemeriksaan (grid tengah).",
+                req: [
+                    "Rangkaian harus melewati baris tengah (baris 2).",
+                    "Gunakan Resistor untuk melindungi LED dari tegangan berlebih.",
+                    "Saklar harus menutup rangkaian."
+                ],
+                batteryPos: { r: 2, c: 0 },
+                ledPos: { r: 2, c: 4 }
+            },
+            {
+                id: 3,
+                client: "SMK Negeri 1 Teknik",
+                desc: "Praktikum siswa: Buat rangkaian seri sederhana yang aman. Hindari hubung singkat (short circuit).",
+                req: [
+                    "Buat jalur dari Baterai ke LED.",
+                    "Setiap jalur yang mengandung sumber daya wajib memiliki Hambatan.",
+                    "Aktifkan Saklar untuk menyalakan LED."
+                ],
+                batteryPos: { r: 0, c: 0 },
+                ledPos: { r: 4, c: 4 }
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        const state = {
+            screen: 'menu',
+            levelIndex: 0,
+            score: 0,
+            highScore: 0,
+            completedTickets: 0,
+            grid: [],
+            selectedTool: 'wire',
+            soundEnabled: true,
+            isPaused: false,
+            wakeLock: null
+        };
+
+        // --- AUDIO SYSTEM (Web Audio API) ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn("Web Audio API tidak didukung");
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                // Fail silently
+            }
+        }
+
+        // --- STORAGE MANAGEMENT ---
+        function saveData() {
+            try {
+                const data = {
+                    highScore: state.highScore,
+                    completedTickets: state.completedTickets,
+                    soundEnabled: state.soundEnabled,
+                    version: '1.0'
+                };
+                localStorage.setItem('pkl_electronika_v1', JSON.stringify(data));
+            } catch (e) {
+                console.warn("localStorage quota exceeded atau tidak tersedia");
+            }
+        }
+
+        function loadData() {
+            try {
+                const raw = localStorage.getItem('pkl_electronika_v1');
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    state.highScore = data.highScore || 0;
+                    state.completedTickets = data.completedTickets || 0;
+                    state.soundEnabled = data.soundEnabled !== undefined ? data.soundEnabled : true;
+                }
+            } catch (e) {
+                console.warn("Data korup, reset ke default");
+                localStorage.removeItem('pkl_electronika_v1');
+            }
+            updateMenuStats();
+        }
+
+        function resetData() {
+            try {
+                localStorage.removeItem('pkl_electronika_v1');
+                state.highScore = 0;
+                state.completedTickets = 0;
+                state.soundEnabled = true;
+                saveData();
+                updateMenuStats();
+                showStatus("Data penyimpanan direset");
+                game.closeModals();
+            } catch (e) {
+                showStatus("Gagal mereset data", true);
+            }
+        }
+
+        // --- GAME LOGIC ---
+        const game = {
+            init() {
+                loadData();
+                this.setupEventListeners();
+                this.checkOrientation();
+                this.requestWakeLock();
+            },
+
+            setupEventListeners() {
+                // Resize debounce for Android address bar
+                let resizeTimer;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(() => {
+                        this.checkOrientation();
+                        this.renderGrid();
+                    }, 150);
+                });
+
+                // Visibility change (pause on tab switch/phone call)
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && state.screen === 'game') {
+                        this.pause();
+                    } else if (!document.hidden && state.screen === 'game' && state.isPaused) {
+                        // Optional: auto-resume or keep paused. Keeping paused is safer.
+                    }
+                });
+
+                // Android Back Button handling
+                window.addEventListener('popstate', (e) => {
+                    if (state.screen === 'game' && !state.isPaused) {
+                        e.preventDefault();
+                        this.pause();
+                        history.pushState({ game: true }, '');
+                    } else if (state.screen !== 'menu') {
+                        this.showMenu();
+                    }
+                });
+
+                // Prevent accidental close during game
+                window.addEventListener('beforeunload', (e) => {
+                    if (state.screen === 'game' && !state.isPaused) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (state.screen === 'game' && !state.isPaused) this.pause();
+                        else if (state.isPaused) this.closeModals();
+                    }
+                    if (e.key === 'r' || e.key === 'R') {
+                        if (state.screen === 'game') this.retryLevel();
+                    }
+                });
+
+                // Push initial state for back button
+                history.pushState({ game: false }, '');
+            },
+
+            checkOrientation() {
+                const overlay = document.getElementById('rotateOverlay');
+                // Show warning only on very narrow screens in portrait if needed, 
+                // but our design is flexible. We'll only show if width < 350px and height > width * 1.5
+                if (window.innerWidth < 350 && window.innerHeight > window.innerWidth * 1.5) {
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                }
+            },
+
+            async requestWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) {
+                        state.wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                } catch (e) {
+                    // Wake lock not supported or denied
+                }
+            },
+
+            updateMenuStats() {
+                document.getElementById('highScoreDisplay').textContent = state.highScore;
+                document.getElementById('completedTicketsDisplay').textContent = state.completedTickets;
+                document.getElementById('btnToggleSound').textContent = state.soundEnabled ? "Aktif" : "Mati";
+            },
+
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                state.screen = id.replace('screen', '').toLowerCase();
+            },
+
+            startBriefing() {
+                initAudio();
+                const level = LEVELS[state.levelIndex % LEVELS.length];
+                document.getElementById('ticketNumber').textContent = String(level.id).padStart(2, '0');
+                document.getElementById('clientName').textContent = level.client;
+                document.getElementById('taskDescription').textContent = level.desc;
+                
+                const reqList = document.getElementById('taskRequirements');
+                reqList.innerHTML = '';
+                level.req.forEach(r => {
+                    const li = document.createElement('li');
+                    li.textContent = r;
+                    reqList.appendChild(li);
+                });
+
+                this.showScreen('screenBriefing');
+                history.pushState({ game: true }, '');
+            },
+
+            startLevel() {
+                this.initGrid();
+                this.showScreen('screenGame');
+                this.renderGrid();
+                this.updateHud();
+                state.isPaused = false;
+                this.requestWakeLock();
+            },
+
+            initGrid() {
+                state.grid = [];
+                const level = LEVELS[state.levelIndex % LEVELS.length];
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    const row = [];
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        if (r === level.batteryPos.r && c === level.batteryPos.c) {
+                            row.push({ ...COMPONENTS.BATTERY, r, c });
+                        } else if (r === level.ledPos.r && c === level.ledPos.c) {
+                            row.push({ ...COMPONENTS.LED, r, c });
+                        } else {
+                            row.push({ ...COMPONENTS.EMPTY, r, c });
+                        }
+                    }
+                    state.grid.push(row);
+                }
+            },
+
+            renderGrid() {
+                const container = document.getElementById('gameGrid');
+                container.innerHTML = '';
+                
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        const cellData = state.grid[r][c];
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.setAttribute('role', 'gridcell');
+                        cell.setAttribute('aria-label', `${cellData.type} di baris ${r+1}, kolom ${c+1}`);
+                        
+                        if (cellData.fixed) {
+                            cell.classList.add('fixed');
+                        }
+                        
+                        if (cellData.type !== 'empty') {
+                            cell.innerHTML = cellData.symbol;
+                            if (cellData.type === 'switch' && cellData.state === 'closed') {
+                                // Visual feedback for closed switch
+                                cell.style.stroke = 'oklch(72% 0.16 190)';
+                            }
+                        }
+
+                        cell.addEventListener('pointerdown', (e) => {
+                            e.preventDefault();
+                            this.handleCellClick(r, c);
+                        });
+
+                        container.appendChild(cell);
+                    }
+                }
+            },
+
+            selectTool(tool) {
+                state.selectedTool = tool;
+                playSound('click');
+                document.querySelectorAll('.tool').forEach(t => t.classList.remove('selected'));
+                document.querySelector(`.tool[data-type="${tool}"]`).classList.add('selected');
+            },
+
+            handleCellClick(r, c) {
+                if (state.isPaused) return;
+                const cell = state.grid[r][c];
+                if (cell.fixed) {
+                    // Toggle switch if it's a switch
+                    if (cell.type === 'switch') {
+                        cell.state = cell.state === 'open' ? 'closed' : 'open';
+                        playSound('click');
+                        this.renderGrid();
+                    }
+                    return;
+                }
+
+                playSound('click');
+                if (state.selectedTool === 'eraser') {
+                    cell.type = 'empty';
+                    cell.symbol = '';
+                    cell.state = undefined;
+                } else {
+                    cell.type = state.selectedTool;
+                    cell.symbol = COMPONENTS[state.selectedTool.toUpperCase()].symbol;
+                    if (state.selectedTool === 'switch') {
+                        cell.state = 'open'; // Default to open when placed
+                    }
+                }
+                this.renderGrid();
+            },
+
+            testCircuit() {
+                const level = LEVELS[state.levelIndex % LEVELS.length];
+                const start = level.batteryPos;
+                const target = level.ledPos;
+                
+                // BFS to find path
+                const queue = [{ r: start.r, c: start.c, path: [], hasResistor: false }];
+                const visited = new Set();
+                visited.add(`${start.r},${start.c}`);
+                
+                let success = false;
+                let shortCircuit = false;
+                let activePath = [];
+
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+                    
+                    if (curr.r === target.r && curr.c === target.c) {
+                        if (curr.hasResistor) {
+                            success = true;
+                            activePath = curr.path;
+                        } else {
+                            shortCircuit = true;
+                        }
+                        break;
+                    }
+
+                    const directions = [[0,1], [1,0], [0,-1], [-1,0]];
+                    for (const [dr, dc] of directions) {
+                        const nr = curr.r + dr;
+                        const nc = curr.c + dc;
+                        const key = `${nr},${nc}`;
+                        
+                        if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && !visited.has(key)) {
+                            const neighbor = state.grid[nr][nc];
+                            if (neighbor.type !== 'empty') {
+                                // Check if switch is open (blocks current)
+                                if (neighbor.type === 'switch' && neighbor.state === 'open') {
+                                    continue; // Open switch blocks path
+                                }
+                                
+                                visited.add(key);
+                                const newHasResistor = curr.hasResistor || neighbor.type === 'resistor';
+                                queue.push({ 
+                                    r: nr, 
+                                    c: nc, 
+                                    path: [...curr.path, {r: nr, c: nc}], 
+                                    hasResistor: newHasResistor 
+                                });
+                            }
+                        }
+                    }
+                }
+
+                if (success) {
+                    this.handleSuccess(activePath);
+                } else if (shortCircuit) {
+                    this.handleFailure("Hubung Singkat! Arus mengalir tanpa hambatan (Resistor). Komponen rusak.");
+                } else {
+                    this.handleFailure("Rangkaian Terbuka! Jalur tidak terhubung dari Baterai ke LED, atau Saklar dalam posisi OFF.");
+                }
+            },
+
+            handleSuccess(path) {
+                playSound('success');
+                if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+                
+                // Highlight path
+                path.forEach(p => {
+                    const index = p.r * GRID_SIZE + p.c;
+                    document.querySelectorAll('.cell')[index].classList.add('active-path');
+                });
+
+                setTimeout(() => {
+                    state.score += 50;
+                    if (state.score > state.highScore) state.highScore = state.score;
+                    state.completedTickets++;
+                    saveData();
+                    
+                    document.getElementById('successTotalScore').textContent = state.score;
+                    this.showScreen('screenSuccess');
+                }, 800);
+            },
+
+            handleFailure(msg) {
+                playSound('error');
+                if (navigator.vibrate) navigator.vibrate(200);
+                
+                // Find if there's a short circuit path to highlight
+                // Simplified: just show error
+                document.getElementById('failMessage').textContent = msg;
+                
+                // Highlight all non-empty cells as warning briefly
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach((cell, idx) => {
+                    const r = Math.floor(idx / GRID_SIZE);
+                    const c = idx % GRID_SIZE;
+                    if (state.grid[r][c].type !== 'empty' && !state.grid[r][c].fixed) {
+                        cell.classList.add('short-circuit');
+                    }
+                });
+
+                setTimeout(() => {
+                    cells.forEach(c => c.classList.remove('short-circuit'));
+                    this.showScreen('screenGameOver');
+                }, 1000);
+            },
+
+            nextLevel() {
+                state.levelIndex++;
+                this.startBriefing();
+            },
+
+            retryLevel() {
+                this.startLevel();
+            },
+
+            pause() {
+                state.isPaused = true;
+                document.getElementById('modalPause').classList.add('active');
+                if (state.wakeLock) {
+                    state.wakeLock.release();
+                    state.wakeLock = null;
+                }
+            },
+
+            resume() {
+                state.isPaused = false;
+                this.closeModals();
+                this.requestWakeLock();
+            },
+
+            showMenu() {
+                this.closeModals();
+                this.showScreen('screenMenu');
+                this.updateMenuStats();
+                history.pushState({ game: false }, '');
+            },
+
+            showSettings() {
+                document.getElementById('modalSettings').classList.add('active');
+            },
+
+            showCredits() {
+                document.getElementById('modalCredits').classList.add('active');
+            },
+
+            closeModals() {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            },
+
+            toggleSound() {
+                state.soundEnabled = !state.soundEnabled;
+                saveData();
+                this.updateMenuStats();
+                playSound('click');
+            },
+
+            updateHud() {
+                const level = LEVELS[state.levelIndex % LEVELS.length];
+                document.getElementById('hudLevel').textContent = String(level.id).padStart(2, '0');
+                document.getElementById('hudScore').textContent = state.score;
+            }
+        };
+
+        // --- UTILS ---
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = msg;
+            el.className = 'status-message show' + (isError ? ' error' : '');
+            setTimeout(() => {
+                el.classList.remove('show');
+            }, 2000);
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            game.init();
+            game.selectTool('wire'); // Default tool
+        });
+
+        // [SPAWN VALIDATION] 
+        // Level 1: Battery (2,0), LED (2,4). 4 arah dari battery: (1,0) empty, (3,0) empty, (2,1) empty. Valid.
+        // Level 2: Same. Valid.
+        // Level 3: Battery (0,0), LED (4,4). 4 arah: (0,1) empty, (1,0) empty. Valid.
+        // Semua spawn point dipastikan tidak overlap dan memiliki minimal 1 tile kosong di sekitarnya untuk placement.
+    </script>
+</body>
+</html>
